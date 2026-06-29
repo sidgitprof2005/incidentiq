@@ -1,3 +1,9 @@
+---
+type: Runbook
+title: "Out of Memory (OOM) and Memory Leaks"
+tags: [memory, cache, oom, runbook]
+resource: incident_002.md
+---
 # Runbook: Out of Memory (OOM) and Memory Leaks
 
 This runbook describes the procedure for diagnosing and resolving memory leaks and OOM crashes.

@@ -9,3 +9,4 @@ networkx>=3.0
 streamlit>=1.35.0
 python-dotenv>=1.0.0
 graphviz>=0.20
+python-frontmatter>=1.0.0

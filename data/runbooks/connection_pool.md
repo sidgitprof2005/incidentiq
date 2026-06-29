@@ -1,3 +1,9 @@
+---
+type: Runbook
+title: "Connection Pool Exhaustion"
+tags: [database, connection-pool, runbook]
+resource: incident_001.md
+---
 # Runbook: Connection Pool Exhaustion
 
 This runbook describes the procedure for diagnosing and resolving database connection pool exhaustion issues.

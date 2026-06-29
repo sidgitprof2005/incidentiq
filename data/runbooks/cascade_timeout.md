@@ -1,3 +1,9 @@
+---
+type: Runbook
+title: "Cascading Timeout Failures"
+tags: [cascade, timeout, index, runbook]
+resource: incident_004.md
+---
 # Runbook: Cascading Timeout Failures
 
 This runbook describes the procedure for diagnosing and resolving cascading timeout failures across service dependencies.
