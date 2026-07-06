@@ -23,9 +23,13 @@ st.set_page_config(
 )
 
 
+# Initialize cache-busting session state
+if "cache_key" not in st.session_state:
+    st.session_state["cache_key"] = 0
+
 # 2. Caching Stores and Call Graph Loading
 @st.cache_resource
-def get_sources_info() -> Dict[str, Any]:
+def get_sources_info(cache_key: int = 0) -> Dict[str, Any]:
     stores_path = "stores"
     call_graph_path = os.path.join(stores_path, "call_graph.pkl")
     
@@ -70,7 +74,7 @@ st.sidebar.markdown("# 🚨 IncidentIQ")
 st.sidebar.markdown("### AI Incident Response Intelligence")
 st.sidebar.divider()
 
-sources_info = get_sources_info()
+sources_info = get_sources_info(st.session_state["cache_key"])
 
 st.sidebar.markdown("### Connected Sources")
 if sources_info["connected"]:
@@ -80,9 +84,77 @@ if sources_info["connected"]:
     st.sidebar.success(f"✓ Call graph built ({sources_info['graph_nodes']} nodes, {sources_info['graph_edges']} edges)")
 else:
     st.sidebar.warning(
-        "⚠️ Index files not detected. Please execute `python build_stores.py` in "
-        "your project directory to initialize the vector stores and call graph."
+        "⚠️ Index files not detected. Import a repository or execute "
+        "`python build_stores.py` in your project directory."
     )
+
+st.sidebar.divider()
+
+# Git Repository Import Panel
+st.sidebar.markdown("### 📥 Import Codebase from GitHub")
+repo_url = st.sidebar.text_input("GitHub Repo URL", placeholder="https://github.com/...")
+repo_branch = st.sidebar.text_input("Branch Name", value="main")
+
+if st.sidebar.button("Clone & Index Codebase", use_container_width=True):
+    if not repo_url.strip():
+        st.sidebar.error("Please enter a valid Git Repository URL.")
+    else:
+        with st.sidebar.status("Cloning repository...", expanded=True) as status:
+            try:
+                import git
+                import shutil
+                
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+                sample_codebase_dir = os.path.join(base_dir, "data", "sample_codebase")
+                
+                # Remove existing directory to ensure a clean clone
+                if os.path.exists(sample_codebase_dir):
+                    shutil.rmtree(sample_codebase_dir)
+                os.makedirs(sample_codebase_dir, exist_ok=True)
+                
+                status.write(f"Cloning {repo_url} (branch: {repo_branch})...")
+                git.Repo.clone_from(repo_url, sample_codebase_dir, branch=repo_branch)
+                status.write("✓ Repository cloned successfully.")
+                
+                # Rebuild stores and dependency graphs programmatically
+                status.write("Rebuilding Code Chunks Vector Store...")
+                from ingestion.ast_chunker import chunk_directory
+                from ingestion.vector_store_builder import build_code_chunks_store, build_summaries_store
+                from ingestion.call_graph import build_call_graph
+                
+                code_docs = chunk_directory(sample_codebase_dir)
+                status.write(f"✓ AST chunking generated {len(code_docs)} chunks.")
+                
+                stores_dir = os.path.join(base_dir, "stores")
+                os.makedirs(stores_dir, exist_ok=True)
+                
+                code_chunks_path = os.path.join(stores_dir, "code_chunks")
+                build_code_chunks_store(code_docs, code_chunks_path)
+                status.write("✓ Code Chunks Vector Store updated.")
+                
+                status.write("Rebuilding Call Graph...")
+                G = build_call_graph(sample_codebase_dir)
+                call_graph_path = os.path.join(stores_dir, "call_graph.pkl")
+                with open(call_graph_path, "wb") as f:
+                    pickle.dump(G, f)
+                status.write(f"✓ Call Graph updated ({len(G.nodes)} nodes).")
+                
+                status.write("Generating summaries...")
+                summaries_path = os.path.join(stores_dir, "summaries")
+                build_summaries_store(sample_codebase_dir, summaries_path)
+                status.write("✓ Summaries Vector Store updated.")
+                
+                # Bust the cache to update sidebar info
+                st.session_state["cache_key"] += 1
+                
+                status.update(label="Repository Indexed Successfully!", state="complete")
+                st.sidebar.success("Index updated! Reloading sources...")
+                time.sleep(1.5)
+                st.rerun()
+                
+            except Exception as e:
+                status.update(label="Indexing failed!", state="error")
+                st.sidebar.error(f"Error: {e}")
 
 st.sidebar.divider()
 

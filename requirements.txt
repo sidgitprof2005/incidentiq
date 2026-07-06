@@ -10,3 +10,4 @@ streamlit>=1.35.0
 python-dotenv>=1.0.0
 graphviz>=0.20
 python-frontmatter>=1.0.0
+GitPython>=3.1.0
