@@ -112,8 +112,8 @@ if st.sidebar.button("Clone & Index Codebase", use_container_width=True):
                     shutil.rmtree(sample_codebase_dir)
                 os.makedirs(sample_codebase_dir, exist_ok=True)
                 
-                status.write(f"Cloning {repo_url} (branch: {repo_branch}) [shallow clone]...")
-                git.Repo.clone_from(repo_url, sample_codebase_dir, branch=repo_branch, depth=1)
+                status.write(f"Cloning {repo_url} (branch: {repo_branch})...")
+                git.Repo.clone_from(repo_url, sample_codebase_dir, branch=repo_branch)
                 status.write("✓ Repository cloned successfully.")
                 
                 # Rebuild stores and dependency graphs programmatically
