@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 from agent.planner import generate_plan, DEFAULT_PLAN
 
 
-@patch("agent.planner.ChatAnthropic")
+@patch("agent.planner.ChatOllama")
 def test_generate_plan_success(mock_chat_class: MagicMock) -> None:
     mock_chat_instance = MagicMock()
     mock_chat_class.return_value = mock_chat_instance
@@ -25,7 +25,7 @@ def test_generate_plan_success(mock_chat_class: MagicMock) -> None:
     assert plan[3] == "Step 4: Check git log"
 
 
-@patch("agent.planner.ChatAnthropic")
+@patch("agent.planner.ChatOllama")
 def test_generate_plan_fallback(mock_chat_class: MagicMock) -> None:
     mock_chat_instance = MagicMock()
     mock_chat_class.return_value = mock_chat_instance

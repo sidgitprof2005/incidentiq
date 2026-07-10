@@ -7,7 +7,7 @@ import json
 import logging
 from typing import Tuple, Dict
 from langchain_core.messages import SystemMessage, HumanMessage
-from agent.mock_llm import MockChatAnthropic as ChatAnthropic
+from langchain_ollama import ChatOllama
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ def anonymize(text: str) -> Tuple[str, Dict[str, str]]:
         return "", {}
         
     try:
-        chat = ChatAnthropic(model="claude-sonnet-4-6")
+        chat = ChatOllama(model="llama3.1", temperature=0)
         
         system_prompt = (
             "You are an SRE anonymization utility. Analyze the given incident query.\n"

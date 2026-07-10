@@ -8,7 +8,7 @@ import logging
 import time
 from agent.state import IncidentState
 from langchain_core.messages import SystemMessage, HumanMessage
-from agent.mock_llm import MockChatAnthropic as ChatAnthropic
+from langchain_ollama import ChatOllama
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ def verify(state: IncidentState) -> IncidentState:
         return state
 
     try:
-        chat = ChatAnthropic(model="claude-sonnet-4-6")
+        chat = ChatOllama(model="llama3.1", temperature=0)
         
         system_prompt = (
             "You are an SRE verification assistant.\n"

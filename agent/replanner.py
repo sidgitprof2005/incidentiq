@@ -10,7 +10,7 @@ import logging
 from typing import List
 from agent.state import IncidentState
 from langchain_core.messages import SystemMessage, HumanMessage
-from agent.mock_llm import MockChatAnthropic as ChatAnthropic
+from langchain_ollama import ChatOllama
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +54,8 @@ def replan(state: IncidentState) -> IncidentState:
             })
             return state
 
-        # Call Anthropic API to modify plan
-        chat = ChatAnthropic(model="claude-sonnet-4-6")
+        # Call local Ollama API to modify plan
+        chat = ChatOllama(model="llama3.1", temperature=0)
         
         system_prompt = (
             "You are an SRE replanning assistant.\n"

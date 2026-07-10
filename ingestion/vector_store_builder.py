@@ -9,19 +9,19 @@ from typing import List, Dict, Optional
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
 from langchain_core.messages import SystemMessage, HumanMessage
-from agent.mock_llm import MockEmbeddings as OpenAIEmbeddings
-from agent.mock_llm import MockChatAnthropic as ChatAnthropic
+from langchain_ollama import OllamaEmbeddings
+from langchain_ollama import ChatOllama
 
 logger = logging.getLogger(__name__)
 
 
 def generate_file_summary(filepath: str, file_content: str) -> Optional[str]:
     """
-    Calls the Anthropic API to generate a 3-sentence summary of the Python file content.
+    Calls the local Ollama API to generate a 3-sentence summary of the Python file content.
     Prevents crashing by catching API errors and returning None.
     """
     try:
-        chat = ChatAnthropic(model="claude-sonnet-4-6")
+        chat = ChatOllama(model="llama3.1", temperature=0)
         system_prompt = (
             "You are an expert SRE. Provide a concise, exactly 3-sentence summary "
             "explaining the purpose, key components, and dependencies of this Python file."
@@ -43,7 +43,7 @@ def build_code_chunks_store(documents: List[Document], save_path: str) -> FAISS:
     """
     Builds the FAISS store for AST code chunks and saves it locally.
     """
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+    embeddings = OllamaEmbeddings(model="nomic-embed-text")
     os.makedirs(save_path, exist_ok=True)
     db = FAISS.from_documents(documents, embeddings)
     db.save_local(save_path)
@@ -52,9 +52,9 @@ def build_code_chunks_store(documents: List[Document], save_path: str) -> FAISS:
 
 def build_summaries_store(codebase_dir: str, save_path: str) -> Optional[FAISS]:
     """
-    Walks codebase directory, calls ChatAnthropic to generate summaries, builds and saves FAISS store.
+    Walks codebase directory, calls ChatOllama to generate summaries, builds and saves FAISS store.
     """
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+    embeddings = OllamaEmbeddings(model="nomic-embed-text")
     os.makedirs(save_path, exist_ok=True)
     
     summary_docs: List[Document] = []
@@ -91,7 +91,7 @@ def build_incidents_store(documents: List[Document], save_path: str) -> FAISS:
     """
     Builds the FAISS store for incident reports and runbooks, saving it locally.
     """
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+    embeddings = OllamaEmbeddings(model="nomic-embed-text")
     os.makedirs(save_path, exist_ok=True)
     db = FAISS.from_documents(documents, embeddings)
     db.save_local(save_path)
@@ -103,7 +103,7 @@ def load_all_stores(stores_base_dir: str = "stores") -> Dict[str, FAISS]:
     Loads all three vector stores from disk.
     If any store is missing, raises a ValueError indicating that build_stores.py must be run first.
     """
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+    embeddings = OllamaEmbeddings(model="nomic-embed-text")
     
     code_chunks_path = os.path.join(stores_base_dir, "code_chunks")
     summaries_path = os.path.join(stores_base_dir, "summaries")

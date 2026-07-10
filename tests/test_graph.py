@@ -3,11 +3,11 @@ from langchain_core.documents import Document
 from agent.graph import run_investigation
 
 
-@patch("agent.anonymizer.ChatAnthropic")
-@patch("agent.planner.ChatAnthropic")
-@patch("agent.verifier.ChatAnthropic")
-@patch("agent.replanner.ChatAnthropic")
-@patch("agent.synthesizer.ChatAnthropic")
+@patch("agent.anonymizer.ChatOllama")
+@patch("agent.planner.ChatOllama")
+@patch("agent.verifier.ChatOllama")
+@patch("agent.replanner.ChatOllama")
+@patch("agent.synthesizer.ChatOllama")
 @patch("agent.retriever.load_all_stores")
 @patch("agent.call_graph_node.os.path.exists")
 def test_run_investigation(

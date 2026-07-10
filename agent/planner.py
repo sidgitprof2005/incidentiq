@@ -7,9 +7,10 @@ import json
 import logging
 from typing import List
 from langchain_core.messages import SystemMessage, HumanMessage
-from agent.mock_llm import MockChatAnthropic as ChatAnthropic
+from langchain_ollama import ChatOllama
 
 logger = logging.getLogger(__name__)
+
 
 DEFAULT_PLAN: List[str] = [
     "Identify the affected services and check recent deployment logs for changes.",
@@ -35,7 +36,7 @@ def generate_plan(anonymized_query: str) -> List[str]:
         return DEFAULT_PLAN
         
     try:
-        chat = ChatAnthropic(model="claude-sonnet-4-6")
+        chat = ChatOllama(model="llama3.1", temperature=0)
         
         system_prompt = (
             "You are an expert SRE analyzing a production incident.\n"

@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 from agent.anonymizer import anonymize, de_anonymize
 
 
-@patch("agent.anonymizer.ChatAnthropic")
+@patch("agent.anonymizer.ChatOllama")
 def test_anonymize_success(mock_chat_class: MagicMock) -> None:
     mock_chat_instance = MagicMock()
     mock_chat_class.return_value = mock_chat_instance
@@ -33,7 +33,7 @@ def test_de_anonymize() -> None:
     assert de_anon == "PaymentService crashed due to database pool exhaustion on DatabasePool."
 
 
-@patch("agent.anonymizer.ChatAnthropic")
+@patch("agent.anonymizer.ChatOllama")
 def test_anonymize_fallback(mock_chat_class: MagicMock) -> None:
     mock_chat_instance = MagicMock()
     mock_chat_class.return_value = mock_chat_instance
