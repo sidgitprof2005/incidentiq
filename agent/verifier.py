@@ -51,7 +51,7 @@ def verify(state: IncidentState) -> IncidentState:
         return state
 
     try:
-        chat = ChatOllama(model="llama3.1", temperature=0)
+        chat = ChatOllama(model="llama3.1", temperature=0, format="json")
         
         system_prompt = (
             "You are an SRE verification assistant.\n"

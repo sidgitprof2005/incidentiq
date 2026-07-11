@@ -22,7 +22,7 @@ def anonymize(text: str) -> Tuple[str, Dict[str, str]]:
         return "", {}
         
     try:
-        chat = ChatOllama(model="llama3.1", temperature=0)
+        chat = ChatOllama(model="llama3.1", temperature=0, format="json")
         
         system_prompt = (
             "You are an SRE anonymization utility. Analyze the given incident query.\n"

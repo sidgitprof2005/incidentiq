@@ -13,6 +13,8 @@ from typing import Dict, Any, List
 from ingestion.vector_store_builder import load_all_stores
 from agent.state import new_incident_state
 from agent.graph import app
+from streamlit_oauth import OAuth2Component
+from agent.auth_db import init_user_db, register_user, get_registered_users
 
 
 # 1. Page Configuration
@@ -21,6 +23,87 @@ st.set_page_config(
     page_title="IncidentIQ 🚨",
     page_icon="🚨"
 )
+
+# Initialize User Database
+init_user_db()
+
+# Google OAuth Setup
+CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+
+is_google_configured = (
+    CLIENT_ID 
+    and CLIENT_SECRET 
+    and "your-google-client-id" not in CLIENT_ID 
+    and "your-google-client-secret" not in CLIENT_SECRET
+)
+
+# Authentication Screening
+if "auth" not in st.session_state:
+    st.markdown("<h1 style='text-align: center; color: #FF4B4B; margin-top: 50px;'>🚨 IncidentIQ</h1>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center;'>AI Incident Response Intelligence</h3>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #FAFAFA;'>Log in to analyze system blast radius, query vector databases, and synthesize SRE reports.</p>", unsafe_allow_html=True)
+    st.divider()
+
+    col_btn1, col_btn2 = st.columns(2)
+    
+    with col_btn1:
+        st.markdown("<h4 style='color: #FF4B4B;'>🔑 Google Single Sign-On</h4>", unsafe_allow_html=True)
+        if is_google_configured:
+            oauth2 = OAuth2Component(
+                CLIENT_ID,
+                CLIENT_SECRET,
+                "https://accounts.google.com/o/oauth2/v2/auth",
+                "https://oauth2.googleapis.com/token",
+                "https://oauth2.googleapis.com/token",
+                "https://accounts.google.com/o/oauth2/v2/auth"
+            )
+            result = oauth2.authorize_button(
+                name="Sign in with Google",
+                redirect_uri="http://localhost:8501",
+                scope="openid email profile",
+                key="google_login"
+            )
+            if result and "token" in result:
+                st.session_state["auth"] = result["token"]
+                user_info = result["token"].get("id_token_decoded", {})
+                register_user(
+                    email=user_info.get("email", ""),
+                    name=user_info.get("name", "Google User"),
+                    picture=user_info.get("picture", "")
+                )
+                st.rerun()
+        else:
+            st.info("Google Sign-In is not configured in `.env`. Run in Developer/Guest mode on the right.")
+            
+    with col_btn2:
+        st.markdown("<h4 style='color: #FF4B4B;'>🛠️ Developer / Guest Access</h4>", unsafe_allow_html=True)
+        guest_name = st.text_input("Enter your name", value="Guest SRE")
+        guest_email = st.text_input("Enter your email", value="guest@example.com")
+        if st.button("Login as Guest / Developer", use_container_width=True):
+            st.session_state["auth"] = {
+                "user_type": "guest",
+                "email": guest_email,
+                "name": guest_name,
+                "picture": ""
+            }
+            register_user(email=guest_email, name=guest_name, picture="")
+            st.rerun()
+            
+    st.stop()
+
+
+# Get Active User Details
+auth_data = st.session_state["auth"]
+if auth_data.get("user_type") == "guest":
+    user_email = auth_data.get("email", "guest@example.com")
+    user_name = auth_data.get("name", "Guest SRE")
+    user_picture = ""
+else:
+    user_info = auth_data.get("id_token_decoded", {})
+    user_email = user_info.get("email", "")
+    user_name = user_info.get("name", "Google User")
+    user_picture = user_info.get("picture", "")
 
 
 # Initialize cache-busting session state
@@ -72,6 +155,41 @@ def get_sources_info(cache_key: int = 0) -> Dict[str, Any]:
 # 3. Sidebar Layout
 st.sidebar.markdown("# 🚨 IncidentIQ")
 st.sidebar.markdown("### AI Incident Response Intelligence")
+st.sidebar.divider()
+
+# Render User Profile Card
+st.sidebar.markdown("### User Profile")
+col_p1, col_p2 = st.sidebar.columns([1, 4])
+with col_p1:
+    if user_picture:
+        st.image(user_picture, width=45)
+    else:
+        st.markdown("<h2 style='margin: 0;'>👤</h2>", unsafe_allow_html=True)
+with col_p2:
+    st.markdown(f"**{user_name}**  \n`{user_email}`")
+if st.sidebar.button("Logout", use_container_width=True):
+    del st.session_state["auth"]
+    st.rerun()
+
+st.sidebar.divider()
+
+# Registered SRE Team list
+with st.sidebar.expander("👥 Registered SRE Team"):
+    registered_users = get_registered_users()
+    if registered_users:
+        for name, email, pic, last_login in registered_users:
+            col_u1, col_u2 = st.columns([1, 4])
+            with col_u1:
+                if pic:
+                    st.image(pic, width=24)
+                else:
+                    st.markdown("👤")
+            with col_u2:
+                st.markdown(f"**{name}**  \n`{email}`")
+            st.divider()
+    else:
+        st.write("No team members registered.")
+
 st.sidebar.divider()
 
 sources_info = get_sources_info(st.session_state["cache_key"])

@@ -55,7 +55,7 @@ def replan(state: IncidentState) -> IncidentState:
             return state
 
         # Call local Ollama API to modify plan
-        chat = ChatOllama(model="llama3.1", temperature=0)
+        chat = ChatOllama(model="llama3.1", temperature=0, format="json")
         
         system_prompt = (
             "You are an SRE replanning assistant.\n"

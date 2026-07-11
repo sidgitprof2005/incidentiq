@@ -36,7 +36,7 @@ def generate_plan(anonymized_query: str) -> List[str]:
         return DEFAULT_PLAN
         
     try:
-        chat = ChatOllama(model="llama3.1", temperature=0)
+        chat = ChatOllama(model="llama3.1", temperature=0, format="json")
         
         system_prompt = (
             "You are an expert SRE analyzing a production incident.\n"

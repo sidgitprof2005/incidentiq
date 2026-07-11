@@ -48,7 +48,7 @@ def synthesize(state: IncidentState) -> IncidentState:
     call_graph_str = "\n".join(call_graph_context)
 
     try:
-        chat = ChatOllama(model="llama3.1", temperature=0)
+        chat = ChatOllama(model="llama3.1", temperature=0, format="json")
         
         system_prompt = (
             "You are an expert SRE synthesizing an incident investigation report.\n"
